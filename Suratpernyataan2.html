@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Generator Surat Pernyataan — Mail Merge (DJPb)</title>
+<style>
+ol {
+    counter-reset: item;
+    margin-left: 0;
+    padding-left: 0;
+}
+ol li {
+    display: block;
+    margin-bottom: 12px;
+    text-align: justify;
+    padding-left: 20px;
+    text-indent: -20px;
+}
+ol li:before {
+    content: counters(item, ".") ". ";
+    counter-increment: item;
+    font-weight: bold;
+    margin-right: 5px;
+}
+ol li { margin-bottom: 10px; text-align: justify; }
+  :root{--accent:#0b5ed7;--muted:#6b7280}
+  body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; margin:0;background:#f3f6fa;color:#0b2545}
+  .wrap{max-width:1100px;margin:24px auto;padding:18px}
+  .card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(12,24,60,0.06)}
+  h1{font-size:18px;margin:0 0 10px}
+  label{display:block;font-size:13px;margin-top:10px;color:var(--muted)}
+  input[type=text], input[type=date], textarea, select{width:100%;padding:10px;border:1px solid #e6eefc;border-radius:8px;font-size:14px}
+  .grid{display:grid;grid-template-columns:1fr 520px;gap:18px}
+  .btn{background:var(--accent);color:white;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .btn.ghost{background:transparent;border:1px solid #dbe9ff;color:var(--accent)}
+  .small{font-size:13px;color:var(--muted)}
+  .preview-frame{border:1px solid #e6eefc;padding:18px;border-radius:8px;background:#fff;min-height:1120px}
+  .letter{font-family: 'Times New Roman', serif;color:#000;padding:28px;width:210mm;box-sizing:border-box}
+  .title{ text-align:center;font-weight:bold;font-size:16pt }
+  .subtitle{ text-align:center;font-size:11pt;margin-top:4px;margin-bottom:18px }
+  .info-table td{padding:3px 6px;vertical-align:top}
+  .signature-img{max-width:180px;display:block}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .note{font-size:13px;color:var(--muted);margin-top:8px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Generator Surat Pernyataan — Komitmen Anti Gratifikasi (DJPb)</h1>
+    <p class="small">Isi form, buat atau upload tanda tangan, lalu klik <strong>Generate PDF</strong>. Hasil PDF A4 siap unduh.</p>
+
+    <div class="grid" style="margin-top:12px">
+      <div>
+        <label>Nama</label>
+        <input id="nama" type="text" placeholder="Nama lengkap" />
+
+        <label>Instansi / Perusahaan</label>
+        <input id="instansi" type="text" placeholder="Contoh: Ditjen Perbendaharaan" />
+
+        <label>Jabatan / Posisi</label>
+        <input id="jabatan" type="text" placeholder="Contoh: Pelaksana" />
+
+        <label>Tempat</label>
+        <input id="tempat" type="text" placeholder="Contoh: Jakarta" />
+
+        <label>Tanggal (TTD)</label>
+        <input id="tanggal" type="date" />
+
+        <label>Tanda tangan — gambar (upload) atau gunakan canvas di bawah</label>
+        <input id="uploadSig" type="file" accept="image/*" />
+        <div class="note">Atau buat tanda tangan dengan mouse / pen:</div>
+        <canvas id="sigCanvas" width="420" height="120" style="border:1px solid #ddd;border-radius:6px;display:block;margin-top:8px;touch-action:none;background:#fff"></canvas>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn ghost" id="clearSig">Bersihkan</button>
+          <button class="btn ghost" id="undoSig">Undo</button>
+          <button class="btn ghost" id="useUpload">Gunakan Gambar Upload</button>
+        </div>
+
+        <div class="controls">
+          <button class="btn" id="generate">Generate PDF</button>
+          <button class="btn ghost" id="previewBtn">Perbarui Preview</button>
+          <button class="btn ghost" id="downloadPreview">Unduh PDF (Preview)</button>
+        </div>
+
+        <p class="note">Tips: Saat menyimpan dari dialog Print di Chrome, pilih <em>Save as PDF</em>, ukuran A4, dan centang <strong>Background graphics</strong> bila perlu.</p>
+      </div>
+
+      <div>
+        <div class="card" style="padding:12px">
+          <div id="preview" class="preview-frame">
+            <!-- preview di-render di sini -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+// signature pad (simple)
+const canvas = document.getElementById('sigCanvas');
+const ctx = canvas.getContext('2d');
+let drawing=false; let paths=[];
+canvas.addEventListener('pointerdown', e=>{drawing=true;const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)*(canvas.width/r.width);const y=(e.clientY-r.top)*(canvas.height/r.height);paths.push([{x,y}]);draw();});
+canvas.addEventListener('pointermove', e=>{if(!drawing) return;const r=canvas.getBoundingClientRect();const x=(e.clientX-r.left)*(canvas.width/r.width);const y=(e.clientY-r.top)*(canvas.height/r.height);paths[paths.length-1].push({x,y});draw();});
+canvas.addEventListener('pointerup', ()=>drawing=false);canvas.addEventListener('pointerleave', ()=>drawing=false);
+function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.lineWidth=2.4;ctx.lineJoin='round';ctx.lineCap='round';ctx.strokeStyle='#0b2545';for(const p of paths){if(p.length===0) continue;ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);for(let i=1;i<p.length;i++) ctx.lineTo(p[i].x,p[i].y);ctx.stroke();}}
+document.getElementById('clearSig').addEventListener('click', ()=>{paths=[];draw();uploadedSig='';});
+document.getElementById('undoSig').addEventListener('click', ()=>{paths.pop();draw();});
+
+// handle upload
+let uploadedSig='';
+const uploadEl = document.getElementById('uploadSig');
+uploadEl.addEventListener('change', (ev)=>{
+  const f = ev.target.files[0];
+  if(!f) return; const reader=new FileReader();
+  reader.onload = function(e){ uploadedSig = e.target.result; document.getElementById('useUpload').innerText='Gunakan Gambar Upload (aktif)'; drawUploadedOnCanvas(uploadedSig); };
+  reader.readAsDataURL(f);
+});
+function drawUploadedOnCanvas(data){const img=new Image();img.onload=()=>{ // fit into canvas
+    draw(); ctx.drawImage(img, 10, 8, canvas.width-20, canvas.height-16);
+  }; img.src=data; }
+
+// use upload: copy upload into a hidden img for preview insertion
+let sigDataForLetter = '';
+document.getElementById('useUpload').addEventListener('click', ()=>{
+  if(uploadedSig){ sigDataForLetter = uploadedSig; alert('Gambar tanda tangan siap digunakan pada surat (preview akan menunjukkan).'); refreshPreview(); }
+  else alert('Belum ada gambar terupload.');
+});
+
+// build letter
+const templateParagraphs = [
+  '1. Saya menyadari sepenuhnya bahwa pemberian/penerimaan suap dan gratifikasi merupakan perbuatan korupsi yang menciderai nilai integritas dan melanggar norma hukum.',
+  '2. Saya memahami dan mendukung penuh kebijakan pencegahan gratifikasi, benturan kepentingan, dan penguatan integritas di lingkungan Kementerian Keuangan, khususnya Direktorat Jenderal Perbendaharaan.',
+  '3. Saya berkomitmen untuk tidak memberikan uang, hadiah, fasilitas, komisi, imbalan, hiburan, ataupun bentuk pemberian lainnya kepada pejabat/pegawai di lingkungan Direktorat Jenderal Perbendaharaan, baik secara langsung maupun tidak langsung, dalam bentuk apa pun yang berkaitan dengan Kerjasama atau layanan Ditjen Perbendaharaan.',
+  '4. Saya bersedia melaporkan kepada pimpinan Ditjen Perbendaharaan melalui saluran pelaporan yang tersedia (WISE atau SIPANDU) apabila mengetahui adanya oknum Ditjen Perbendaharaan yang meminta atau menerima gratifikasi atas layanan yang diberikan.',
+  '5. Saya akan meneruskan pesan komitmen ini kepada seluruh unit/kantor vertikal, kantor cabang, atau perwakilan Instansi/Perusahaan kami agar tidak memberikan pemberian dalam bentuk apa pun kepada pejabat/pegawai DJPb atas Kerjasama atau layanan Ditjen Perbendaharaan.'
+];
+
+function formatDateInput(dateStr){ if(!dateStr) return '';
+  const d = new Date(dateStr);
+  const opts = { day:'2-digit', month:'long', year:'numeric' };
+  return d.toLocaleDateString('id-ID', opts);
+}
+
+function buildLetterHtml(data){
+  const nama = data.nama||'....................................................';
+  const inst = data.instansi||'....................................................';
+  const jab = data.jabatan||'....................................................';
+  const tempat = data.tempat||'Jakarta';
+  const tgl = data.tanggal ? formatDateInput(data.tanggal) : 'November 2025';
+  const sig = sigDataForLetter || (paths.length>0 ? getCanvasDataUrl() : '');
+
+  let html = `
+  <div class="letter" style="background:white;margin:0 auto;">
+    <div class="title">SURAT PERNYATAAN</div>
+    <div class="subtitle">Komitmen Tidak Memberikan Sesuatu atas Layanan Direktorat Jenderal Perbendaharaan</div>
+
+    <p>Yang bertanda tangan di bawah ini:</p>
+    <table style="width:100%;font-size:14px;margin-bottom:10px" class="info-table">
+      <tr><td style="width:160px">Nama</td><td>: <strong>${escapeHtml(nama)}</strong></td></tr>
+      <tr><td>Instansi/Perusahaan</td><td>: <strong>${escapeHtml(inst)}</strong></td></tr>
+      <tr><td>Jabatan</td><td>: <strong>${escapeHtml(jab)}</strong></td></tr>
+    </table>
+
+    <p>Dengan ini menyatakan bahwa:</p>
+    <div style="font-size:14px">
+      ${templateParagraphs.map(p=>`<p style=\"margin:6px 0;text-align:justify;text-indent:-18px;padding-left:18px;\">${p}</p>`).join('')}
+    </div>
+
+    <p style="margin-top:12px">Demikian surat pernyataan ini dibuat untuk mendukung penguatan integritas Ditjen Perbendaharaan.</p>
+
+    <table style="width:100%;margin-top:28px" class="signature-table">
+      <tr>
+        <td style="width:60%"></td>
+        <td style="width:40%;text-align:left">
+          ${escapeHtml(tempat)}, ${escapeHtml(tgl)}<br>
+          Yang membuat pernyataan,<br><br>
+          ${ sig ? `<img src=\"${sig}\" class=\"signature-img\" />` : `<div style=\"width:150px;height:80px;border:1px dashed #ccc;margin-bottom:6px\"></div>` }
+          <div style=\"margin-top:8px\">(<b>${escapeHtml(nama)}</b>)</div>
+        </td>
+      </tr>
+    </table>
+  </div>`;
+  return html;
+}
+
+function escapeHtml(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+function getCanvasDataUrl(){ // return data url representing current canvas drawing
+  // draw paths to temp canvas to ensure correct rendering
+  const temp = document.createElement('canvas'); temp.width = canvas.width; temp.height = canvas.height; const tctx = temp.getContext('2d'); tctx.fillStyle='white'; tctx.fillRect(0,0,temp.width,temp.height);
+  tctx.lineWidth=2.4; tctx.lineJoin='round'; tctx.lineCap='round'; tctx.strokeStyle='#0b2545';
+  for(const p of paths){ if(!p.length) continue; tctx.beginPath(); tctx.moveTo(p[0].x,p[0].y); for(let i=1;i<p.length;i++) tctx.lineTo(p[i].x,p[i].y); tctx.stroke(); }
+  return temp.toDataURL('image/png');
+}
+
+function refreshPreview(){
+  const data = { nama: document.getElementById('nama').value, instansi: document.getElementById('instansi').value, jabatan: document.getElementById('jabatan').value, tempat: document.getElementById('tempat').value, tanggal: document.getElementById('tanggal').value };
+  // if uploadedSig is set but not used as sigDataForLetter, don't force until user clicks useUpload
+  // but for preview, show canvas or uploaded
+  if(!sigDataForLetter){ if(paths.length>0) sigDataForLetter = getCanvasDataUrl(); }
+  const html = buildLetterHtml(data);
+  document.getElementById('preview').innerHTML = html;
+}
+
+// initial preview
+refreshPreview();
+
+document.getElementById('previewBtn').addEventListener('click', ()=>{ // reset sigDataForLetter so preview uses current drawing unless upload used
+  if(!uploadedSig) sigDataForLetter = ''; else sigDataForLetter = uploadedSig; refreshPreview();
+});
+
+// generate PDF
+async function generatePdfAndSave(){
+  refreshPreview();
+  const el = document.querySelector('#preview .letter');
+  // render at high scale
+  const canvasCapture = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+  const imgData = canvasCapture.toDataURL('image/png');
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 12;
+  const pdfWidth = pageWidth - margin*2;
+  const ratio = canvasCapture.width / pdfWidth;
+  const pdfHeight = canvasCapture.height / ratio;
+  pdf.addImage(imgData, 'PNG', margin, margin, pdfWidth, pdfHeight);
+  const filename = (document.getElementById('nama').value || 'surat_pernyataan').trim().replace(/\s+/g,'_') + '_surat_pernyataan.pdf';
+  pdf.save(filename);
+}
+
+document.getElementById('generate').addEventListener('click', async ()=>{
+  try{ await generatePdfAndSave(); }catch(err){ alert('Gagal generate PDF: '+err); }
+});
+
+// download preview button (same function but smaller scale ok)
+document.getElementById('downloadPreview').addEventListener('click', async ()=>{ await generatePdfAndSave(); });
+
+// update preview live when fields change
+['nama','instansi','jabatan','tempat','tanggal'].forEach(id=>document.getElementById(id).addEventListener('input', refreshPreview));
+
+// when user draws, update preview after small delay
+let drawTimeout=null; canvas.addEventListener('pointerup', ()=>{ clearTimeout(drawTimeout); drawTimeout = setTimeout(()=>{ sigDataForLetter = getCanvasDataUrl(); refreshPreview(); },250); });
+
+</script>
+</body>
+</html>
