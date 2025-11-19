@@ -1,99 +1,176 @@
 <!doctype html>
 <html lang="id">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Generator Surat Pernyataan</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Generator Surat Pernyataan — Premium Layout</title>
 
 <style>
+:root {
+  --accent: #0b5ed7;
+  --muted: #6b7280;
+  --bg: #eef2f8;
+  --card: #ffffff;
+  --border: #d8e0ef;
+  --text: #0b2545;
+}
+
+/* Global */
 body {
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#eef2f7;
+  margin: 0;
+  font-family: Inter, system-ui, Arial;
+  background: var(--bg);
+  color: var(--text);
 }
-.container {
-  display:flex;
-  height:100vh;
+
+/* Container split-screen */
+.app {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  height: 100vh;
 }
-.left {
-  width:380px;
-  background:white;
-  padding:20px;
-  overflow-y:auto;
-  border-right:1px solid #ccd3e2;
+
+@media(max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
 }
-.right {
-  flex:1;
-  padding:20px;
-  overflow-y:auto;
+
+/* Left panel — form */
+.sidebar {
+  background: var(--card);
+  padding: 24px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
 }
-.preview-box {
-  background:white;
-  width:210mm;
-  min-height:297mm;
-  margin:auto;
-  border:1px solid #ddd;
-  padding:0;
+
+.sidebar h1 {
+  margin: 0 0 8px 0;
+  font-size: 22px;
 }
+
+.note {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
 label {
-  margin-top:10px;
-  font-size:14px;
-  display:block;
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: var(--muted);
 }
-input {
-  width:100%;
-  padding:8px;
-  margin-top:4px;
-  border:1px solid #ccc;
-  border-radius:4px;
+input, select {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  box-sizing: border-box;
 }
+
 #sigCanvas {
-  border:1px solid #ccc;
-  width:100%;
-  height:120px;
-  margin-top:10px;
+  border: 1px solid var(--border);
+  width: 100%;
+  height: 120px;
+  border-radius: 6px;
+  background: #fff;
+  margin-bottom: 12px;
 }
-button {
-  margin-top:12px;
-  width:100%;
-  padding:10px;
-  background:#0b5ed7;
-  border:none;
-  color:white;
-  border-radius:4px;
-  cursor:pointer;
+
+.sig-btns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
 }
+
+.btn {
+  background: var(--accent);
+  border: none;
+  padding: 8px 14px;
+  font-size: 14px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn.ghost {
+  background: white;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
 .status {
-  margin-top:10px;
-  font-size:14px;
+  font-size: 14px;
+  margin-top: 16px;
 }
+
+/* Right panel — preview */
+.preview-area {
+  padding: 24px;
+  overflow-y: scroll;
+}
+
+.preview-box {
+  background: white;
+  border: 1px solid var(--border);
+  padding: 0;
+  width: 210mm;
+  margin: auto;
+  min-height: 297mm;
+  border-radius: 4px;
+}
+
+/* Letter layout */
 .letter {
-  padding:30px;
-  font-family:"Times New Roman",serif;
+  padding: 28px;
+  font-family: "Times New Roman", serif;
+  color: black;
+}
+
+.title {
+  text-align: center;
+  font-size: 18pt;
+  font-weight: bold;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 12pt;
+  margin: 4px 0 24px 0;
+}
+
+.signature-img {
+  max-width: 180px;
 }
 </style>
 </head>
 
 <body>
+<div class="app">
 
-<div class="container">
-
-  <div class="left">
-    <h2>Generator Surat</h2>
+  <!-- LEFT: FORM -->
+  <div class="sidebar">
+    <h1>Generator Surat</h1>
+    <p class="note">Isi formulir di bawah, tanda tangani, lalu klik <b>Generate & Send</b>.</p>
 
     <label>Nama</label>
-    <input id="nama">
+    <input id="nama" type="text">
 
     <label>Instansi</label>
-    <input id="instansi">
+    <input id="instansi" type="text">
 
     <label>Jabatan</label>
-    <input id="jabatan">
+    <input id="jabatan" type="text">
 
-    <label>Tempat</label>
-    <input id="tempat">
+    <label>Tempat Tanda Tangan</label>
+    <input id="tempat" type="text">
 
-    <label>Tanggal</label>
+    <label>Tanggal Tanda Tangan</label>
     <input id="tanggal" type="date">
 
     <label>Upload Tanda Tangan</label>
@@ -101,180 +178,221 @@ button {
 
     <canvas id="sigCanvas"></canvas>
 
-    <button id="clearSig">Bersihkan</button>
-    <button id="useUpload">Gunakan Upload</button>
-    <button id="generateUpload">Generate & Upload</button>
+    <div class="sig-btns">
+      <button class="btn ghost" id="clearSig">Bersihkan</button>
+      <button class="btn ghost" id="undoSig">Undo</button>
+      <button class="btn ghost" id="useUpload">Gunakan Upload</button>
+    </div>
 
-    <div id="status" class="status"></div>
+    <button class="btn" id="doAll" style="width:100%">Generate & Send</button>
+
+    <div class="status" id="status"></div>
   </div>
 
-  <div class="right">
+  <!-- RIGHT: PREVIEW -->
+  <div class="preview-area">
     <div id="preview" class="preview-box"></div>
   </div>
 
 </div>
 
+<!-- LIBS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-/* --------------- SIGNATURE PAD ----------------- */
+// ---------------- SIGNATURE PAD --------------------
 const canvas = document.getElementById("sigCanvas");
 const ctx = canvas.getContext("2d");
-canvas.width = canvas.offsetWidth;
-canvas.height = canvas.offsetHeight;
-
-let drawing = false, paths = [], uploadedSig = "", sigData = "";
+let drawing = false, paths = [];
+let uploadedSig = "", sigDataForLetter = "";
 
 canvas.addEventListener("pointerdown", e => {
   drawing = true;
-  paths.push([{x:e.offsetX,y:e.offsetY}]);
+  const r = canvas.getBoundingClientRect();
+  const x = (e.clientX - r.left) * (canvas.width / r.width);
+  const y = (e.clientY - r.top) * (canvas.height / r.height);
+  paths.push([{x,y}]);
+  draw();
 });
 canvas.addEventListener("pointermove", e => {
-  if(!drawing) return;
-  paths[paths.length-1].push({x:e.offsetX,y:e.offsetY});
-  drawSig();
+  if (!drawing) return;
+  const r = canvas.getBoundingClientRect();
+  const x = (e.clientX - r.left) * (canvas.width / r.width);
+  const y = (e.clientY - r.top) * (canvas.height / r.height);
+  paths[paths.length-1].push({x,y});
+  draw();
 });
 canvas.addEventListener("pointerup", ()=> drawing=false);
+canvas.addEventListener("pointerleave", ()=> drawing=false);
 
-function drawSig(){
+function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.lineWidth = 2;
   ctx.strokeStyle = "#000";
   ctx.lineJoin = "round";
+  ctx.lineCap = "round";
   for(const p of paths){
     ctx.beginPath();
-    ctx.moveTo(p[0].x, p[0].y);
-    for(const t of p) ctx.lineTo(t.x,t.y);
+    ctx.moveTo(p[0].x,p[0].y);
+    for(let i=1;i<p.length;i++) ctx.lineTo(p[i].x,p[i].y);
     ctx.stroke();
   }
 }
 
 document.getElementById("clearSig").onclick = ()=>{
-  paths = [];
-  uploadedSig = "";
-  sigData = "";
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  renderPreview();
+  paths = []; draw(); uploadedSig=""; sigDataForLetter=""; refreshPreview();
+};
+document.getElementById("undoSig").onclick = ()=>{
+  paths.pop(); draw(); refreshPreview();
 };
 
 document.getElementById("uploadSig").onchange = e=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader=new FileReader();
+  reader.onload = ev=>{
     uploadedSig = ev.target.result;
-    sigData = uploadedSig;
-    renderPreview();
+    const img = new Image();
+    img.onload = ()=>{ draw(); ctx.drawImage(img, 10,10, canvas.width-20, canvas.height-20 );};
+    img.src = uploadedSig;
   };
-  reader.readAsDataURL(file);
+  reader.readAsDataURL(f);
+};
+document.getElementById("useUpload").onclick=()=>{
+  if(uploadedSig){ sigDataForLetter=uploadedSig; refreshPreview(); }
+  else alert("Belum ada gambar upload.");
 };
 
-document.getElementById("useUpload").onclick = ()=>{
-  if(uploadedSig) sigData = uploadedSig;
-  else if(paths.length>0) sigData = canvas.toDataURL();
-  renderPreview();
-};
+function getCanvasDataUrl(){
+  const t=document.createElement("canvas");
+  t.width=canvas.width; t.height=canvas.height;
+  t.getContext("2d").drawImage(canvas,0,0);
+  return t.toDataURL("image/png");
+}
 
-/* --------------- PREVIEW ----------------- */
-function escapeHTML(str=""){ return str.replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+// ---------------- TEMPLATE SURAT --------------------
+const paragraphs = [
+  "Saya menyadari bahwa pemberian/penerimaan gratifikasi merupakan perbuatan korupsi.",
+  "Saya mendukung penuh kebijakan pencegahan gratifikasi dan penguatan integritas DJPb.",
+  "Saya berkomitmen tidak memberikan hadiah, fasilitas, atau bentuk pemberian apapun kepada pejabat/pegawai DJPb.",
+  "Saya bersedia melaporkan jika mengetahui adanya penerimaan gratifikasi.",
+  "Saya akan meneruskan komitmen ini kepada seluruh unit/instansi terkait."
+];
 
-function renderPreview(){
-  const nama = escapeHTML(document.getElementById("nama").value);
-  const inst = escapeHTML(document.getElementById("instansi").value);
-  const jab = escapeHTML(document.getElementById("jabatan").value);
-  const tempat = escapeHTML(document.getElementById("tempat").value);
+function formatDate(d){
+  return new Date(d).toLocaleDateString("id-ID",{day:"2-digit",month:"long",year:"numeric"});
+}
+
+function escape(s){
+  return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;");
+}
+
+function buildLetter(){
+  const nama = document.getElementById("nama").value;
+  const inst = document.getElementById("instansi").value;
+  const jab = document.getElementById("jabatan").value;
+  const tempat = document.getElementById("tempat").value;
   const tgl = document.getElementById("tanggal").value;
 
-  const sig = sigData || (paths.length ? canvas.toDataURL() : "");
+  const sig = sigDataForLetter || (paths.length>0 ? getCanvasDataUrl() : "");
 
-  document.getElementById("preview").innerHTML = `
+  return `
   <div class="letter">
-    <h2 style="text-align:center;">SURAT PERNYATAAN</h2>
+    <div class="title">SURAT PERNYATAAN</div>
+    <div class="subtitle">Komitmen Anti Gratifikasi</div>
 
     <p>Yang bertanda tangan di bawah ini:</p>
-    <p>
-      Nama: <b>${nama}</b><br>
-      Instansi: <b>${inst}</b><br>
-      Jabatan: <b>${jab}</b>
+    <table style="font-size:14px; width:100%">
+      <tr><td style="width:140px">Nama</td><td>: <b>${escape(nama)}</b></td></tr>
+      <tr><td>Instansi</td><td>: <b>${escape(inst)}</b></td></tr>
+      <tr><td>Jabatan</td><td>: <b>${escape(jab)}</b></td></tr>
+    </table>
+
+    <p>Menyatakan bahwa:</p>
+    <ol style="text-align:justify; padding-left:20px;">
+      ${paragraphs.map(p=>`<li style="margin-bottom:8px">${escape(p)}</li>`).join("")}
+    </ol>
+
+    <p style="margin-top:16px">
+      Demikian surat pernyataan ini dibuat untuk mendukung penguatan integritas.
     </p>
 
-    <p>Menyatakan komitmen anti gratifikasi.</p>
-
-    <p>${tempat}, ${tgl}</p>
-
-    ${sig ? `<img src="${sig}" width="150">` : `<br><br><br>`}
-
-    <p><b>${nama}</b></p>
+    <div style="margin-top:32px; text-align:left;">
+      ${escape(tempat)}, ${tgl?formatDate(tgl):""}<br><br>
+      ${sig?`<img src="${sig}" class="signature-img">`:`<div style="border:1px dashed #aaa;width:150px;height:60px;"></div>`}
+      <br><b>${escape(nama)}</b>
+    </div>
   </div>`;
 }
 
-["nama","instansi","jabatan","tempat","tanggal"]
-  .forEach(id => document.getElementById(id).addEventListener("input", renderPreview));
-renderPreview();
-
-/* --------------- PDF + BASE64 UPLOAD ----------------- */
-const APPSCRIPT_URL = "PASTE_URL_WEB_APP_ANDA";
-
-function setStatus(msg, error=false){
-  const s=document.getElementById("status");
-  s.textContent = msg;
-  s.style.color = error ? "red":"black";
+function refreshPreview(){
+  document.getElementById("preview").innerHTML = buildLetter();
 }
 
-async function blobToBase64(blob){
-  return new Promise(resolve=>{
-    const reader = new FileReader();
-    reader.onload = ()=> resolve(reader.result.split(",")[1]);
-    reader.readAsDataURL(blob);
-  });
-}
+["nama","instansi","jabatan","tempat","tanggal"].forEach(id=>{
+  document.getElementById(id).addEventListener("input",refreshPreview);
+});
+refreshPreview();
 
-async function generatePDF(){
-  const el = document.getElementById("preview");
-  const canvasCap = await html2canvas(el,{scale:1,background:"#fff"});
-  const img = canvasCap.toDataURL("image/png");
-
-  const pdf = new jspdf.jsPDF("p","mm","a4");
-  pdf.addImage(img,"PNG",0,0,210,297);
+// ---------------- CREATE PDF ------------------------
+async function generatePdf(){
+  refreshPreview();
+  const el = document.querySelector("#preview");
+  const canvasCap = await html2canvas(el,{scale:2,background:"#fff"});
+  const imgData = canvasCap.toDataURL("image/png");
+  const pdf = new jspdf.jsPDF({unit:"mm",format:"a4"});
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  pdf.addImage(imgData,"PNG",0,0,pageW,pageW*(canvasCap.height/canvasCap.width));
   return pdf.output("blob");
 }
 
-async function uploadToDrive(blob, filename){
-  const base64 = await blobToBase64(blob);
-
-  const payload = {
-    filename: filename,
-    mimeType: "application/pdf",
-    fileData: base64
-  };
-
-  const req = await fetch(APPSCRIPT_URL,{
-    method:"POST",
-    body:JSON.stringify(payload),
-    headers:{"Content-Type":"application/json"}
-  });
-
-  return req.json();
+function triggerDownload(blob, name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=name;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
-document.getElementById("generateUpload").onclick = async ()=>{
-  setStatus("Membuat PDF...");
+// ---------------- UPLOAD ------------------------
+const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwle5PuEm0KrShdgs3fWCSH3tvcH_u88QgBZYcaHnDTrPVlWbQtaujlpU3B7C6T6QWJ/exec";
 
-  const nama = (document.getElementById("nama").value||"dokumen").replace(/\s+/g,"_");
-  const filename = nama + "_surat_pernyataan.pdf";
+async function uploadToDrive(blob, filename){
+  const fd=new FormData();
+  fd.append("file",blob);
+  fd.append("filename",filename);
+  fd.append("mimeType","application/pdf");
 
-  const blob = await generatePDF();
+  const resp = await fetch(APPSCRIPT_URL,{method:"POST",body:fd});
+  const txt = await resp.text();
+  try { return JSON.parse(txt); }
+  catch { return {status:"error",raw:txt}; }
+}
 
-  setStatus("Mengupload ke Drive...");
+function status(t,e=false){
+  const s=document.getElementById("status");
+  s.textContent=t;
+  s.style.color = e? "red":"black";
+}
 
-  const res = await uploadToDrive(blob, filename);
+document.getElementById("doAll").onclick = async()=>{
+  status("Membuat PDF...");
+  const nama = document.getElementById("nama").value || "surat";
+  const filename = nama.replace(/\s+/g,"_") + "_surat.pdf";
+
+  const blob = await generatePdf();
+  triggerDownload(blob,filename);
+
+  status("Mengupload ke Google Drive...");
+  const res = await uploadToDrive(blob,filename);
 
   if(res.status==="success"){
-    setStatus("Berhasil diunggah!");
-    alert("Upload sukses!\n" + res.url);
+    status("✔ Berhasil diupload");
+    alert("Berhasil diunggah ke Drive:\n" + res.url);
   } else {
-    setStatus("Upload gagal", true);
+    status("❌ Upload gagal",true);
     alert("Upload gagal:\n" + JSON.stringify(res));
   }
 };
@@ -282,4 +400,3 @@ document.getElementById("generateUpload").onclick = async ()=>{
 
 </body>
 </html>
-
