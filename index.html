@@ -339,7 +339,7 @@ refreshPreview();
 async function generatePdf(){
   refreshPreview();
   const el = document.querySelector("#preview");
-  const canvasCap = await html2canvas(el,{scale:2,background:"#fff"});
+  const canvasCap = await html2canvas(el,{scale:1,background:"#fff"});
   const imgData = canvasCap.toDataURL("image/png");
   const pdf = new jspdf.jsPDF({unit:"mm",format:"a4"});
   const pageW = pdf.internal.pageSize.getWidth();
@@ -360,22 +360,31 @@ function triggerDownload(blob, name){
 const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbx4X6fcgMgRzDPELs5iaeZPiDJVheQLrRhLSDQbd1F4C7nvy1YTU1FEfGftCRufMSNn/exec";
 
 async function uploadToDrive(blob, filename){
-  const fd=new FormData();
-  fd.append("file",blob);
-  fd.append("filename",filename);
-  fd.append("mimeType","application/pdf");
+  const base64File = await blobToBase64(blob);
 
-  const resp = await fetch(APPSCRIPT_URL,{method:"POST",body:fd});
-  const txt = await resp.text();
-  try { return JSON.parse(txt); }
-  catch { return {status:"error",raw:txt}; }
+  const data = {
+    filename: filename,
+    mimeType: "application/pdf",
+    fileData: base64File
+  };
+
+  const resp = await fetch(APPSCRIPT_URL, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" }
+  });
+
+  return resp.json();
 }
 
-function status(t,e=false){
-  const s=document.getElementById("status");
-  s.textContent=t;
-  s.style.color = e? "red":"black";
+function blobToBase64(blob){
+  return new Promise((resolve)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result.split(",")[1]);
+    reader.readAsDataURL(blob);
+  });
 }
+
 
 document.getElementById("doAll").onclick = async()=>{
   status("Membuat PDF...");
@@ -400,4 +409,3 @@ document.getElementById("doAll").onclick = async()=>{
 
 </body>
 </html>
-
