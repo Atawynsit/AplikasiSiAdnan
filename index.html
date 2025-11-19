@@ -3,400 +3,241 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Generator Surat Pernyataan — Premium Layout</title>
+<title>Generator Surat Pernyataan</title>
 
 <style>
-:root {
-  --accent: #0b5ed7;
-  --muted: #6b7280;
-  --bg: #eef2f8;
-  --card: #ffffff;
-  --border: #d8e0ef;
-  --text: #0b2545;
-}
+/* --- GAYA TAMPILAN (DARI FILE SEBELUMNYA) --- */
+:root{--accent:#0b5ed7;--muted:#6b7280}
+body{font-family:Inter, system-ui, -apple-system, sans-serif; margin:0;background:#f3f6fa;color:#0b2545}
+.wrap{max-width:1100px;margin:18px auto;padding:18px}
+.card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(12,24,60,0.06)}
+h1{font-size:18px;margin:0 0 10px}
+label{display:block;font-size:13px;margin-top:10px;color:var(--muted);font-weight:600;}
+input[type=text], input[type=date]{width:100%;padding:10px;border:1px solid #e6eefc;border-radius:8px;font-size:14px;box-sizing:border-box; margin-top: 4px;}
+.grid{display:grid;grid-template-columns:1fr 520px;gap:18px}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.preview-frame{border:1px solid #e6eefc;padding:18px;border-radius:8px;background:#fff;min-height:1120px; display:flex; justify-content:center;}
 
-/* Global */
-body {
-  margin: 0;
-  font-family: Inter, system-ui, Arial;
-  background: var(--bg);
-  color: var(--text);
-}
-
-/* Container split-screen */
-.app {
-  display: grid;
-  grid-template-columns: 420px 1fr;
-  height: 100vh;
-}
-
-@media(max-width: 900px) {
-  .app {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
-}
-
-/* Left panel — form */
-.sidebar {
-  background: var(--card);
-  padding: 24px;
-  overflow-y: auto;
-  border-right: 1px solid var(--border);
-}
-
-.sidebar h1 {
-  margin: 0 0 8px 0;
-  font-size: 22px;
-}
-
-.note {
-  color: var(--muted);
-  font-size: 14px;
-  margin-bottom: 24px;
-}
-
-label {
-  display: block;
-  font-size: 13px;
-  margin-bottom: 4px;
-  color: var(--muted);
-}
-input, select {
-  width: 100%;
-  padding: 10px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  margin-bottom: 16px;
-  box-sizing: border-box;
-}
-
-#sigCanvas {
-  border: 1px solid var(--border);
-  width: 100%;
-  height: 120px;
-  border-radius: 6px;
-  background: #fff;
-  margin-bottom: 12px;
-}
-
-.sig-btns {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.btn {
-  background: var(--accent);
-  border: none;
-  padding: 8px 14px;
-  font-size: 14px;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn.ghost {
-  background: white;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-}
-
-.status {
-  font-size: 14px;
-  margin-top: 16px;
-}
-
-/* Right panel — preview */
-.preview-area {
-  padding: 24px;
-  overflow-y: scroll;
-}
-
-.preview-box {
-  background: white;
-  border: 1px solid var(--border);
-  padding: 0;
-  width: 210mm;
-  margin: auto;
-  min-height: 297mm;
-  border-radius: 4px;
-}
-
-/* Letter layout */
-.letter {
-  padding: 28px;
-  font-family: "Times New Roman", serif;
-  color: black;
-}
-
-.title {
-  text-align: center;
-  font-size: 18pt;
-  font-weight: bold;
-}
-
-.subtitle {
-  text-align: center;
-  font-size: 12pt;
-  margin: 4px 0 24px 0;
-}
-
-.signature-img {
-  max-width: 180px;
-}
+.letter{font-family: 'Times New Roman', serif;color:#000;padding:28px;width:210mm;box-sizing:border-box; background: white;}
+.title{ text-align:center;font-weight:bold;font-size:16pt }
+.subtitle{ text-align:center;font-size:11pt;margin-top:4px;margin-bottom:18px }
+.signature-img{max-width:180px;display:block}
+.btn{background:var(--accent);color:white;border:0;padding:12px 14px;border-radius:8px;cursor:pointer;font-weight:600; width: 100%; transition: 0.2s; margin-top: 10px;}
+.btn:hover {opacity: 0.9;}
+.btn:disabled {background: #ccc; cursor: not-allowed;}
+.btn.ghost{background:transparent;border:1px solid #dbe9ff;color:var(--accent); width: auto; padding: 8px 12px; font-size: 12px; margin-top:0;}
+.status{margin-top:12px;font-size:13px; padding: 10px; border-radius: 4px; display: none;}
+.status.loading {background: #e2e3e5; color: #383d41; display: block;}
+.status.success {background: #d1e7dd; color: #0f5132; display: block;}
+.status.error {background: #f8d7da; color: #842029; display: block;}
+@media (max-width:980px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
-<div class="app">
 
-  <!-- LEFT: FORM -->
-  <div class="sidebar">
-    <h1>Generator Surat</h1>
-    <p class="note">Isi formulir di bawah, tanda tangani, lalu klik <b>Generate & Send</b>.</p>
+<div class="wrap">
+  <div class="card">
+    <h1>Generator Surat Pernyataan</h1>
+    <p class="note">Isi form, tanda tangan, lalu klik simpan. File akan otomatis masuk ke folder Drive.</p>
 
-    <label>Nama</label>
-    <input id="nama" type="text">
+    <div class="grid">
+      <div>
+        <label>Nama</label>
+        <input id="nama" type="text" placeholder="Nama lengkap" />
 
-    <label>Instansi</label>
-    <input id="instansi" type="text">
+        <label>Instansi / Perusahaan</label>
+        <input id="instansi" type="text" placeholder="Contoh: Ditjen Perbendaharaan" />
 
-    <label>Jabatan</label>
-    <input id="jabatan" type="text">
+        <label>Jabatan / Posisi</label>
+        <input id="jabatan" type="text" placeholder="Contoh: Pelaksana" />
 
-    <label>Tempat Tanda Tangan</label>
-    <input id="tempat" type="text">
+        <label>Tempat (ttd)</label>
+        <input id="tempat" type="text" placeholder="Contoh: Jakarta" />
 
-    <label>Tanggal Tanda Tangan</label>
-    <input id="tanggal" type="date">
+        <label>Tanggal (ttd)</label>
+        <input id="tanggal" type="date" />
 
-    <label>Upload Tanda Tangan</label>
-    <input id="uploadSig" type="file" accept="image/*">
+        <label>Tanda Tangan</label>
+        <div class="note">Gambar tanda tangan di kotak ini:</div>
+        <canvas id="sigCanvas" width="420" height="150" style="border:2px dashed #ccc;border-radius:6px;display:block;margin-top:8px;background:#fff; touch-action: none; width: 100%;"></canvas>
 
-    <canvas id="sigCanvas"></canvas>
+        <div style="display:flex;gap:8px;margin-top:8px; align-items: center;">
+          <button class="btn ghost" id="clearSig" style="color: crimson; border-color: crimson;">Hapus</button>
+          <button class="btn ghost" id="undoSig">Undo</button>
+        </div>
+        
+        <label style="margin-top:15px;">Atau Upload Gambar:</label>
+        <input id="uploadSig" type="file" accept="image/*" style="margin-top:0;" />
+        <button class="btn ghost" id="useUpload" style="margin-top:5px; width:100%;">Pakai Gambar Upload</button>
 
-    <div class="sig-btns">
-      <button class="btn ghost" id="clearSig">Bersihkan</button>
-      <button class="btn ghost" id="undoSig">Undo</button>
-      <button class="btn ghost" id="useUpload">Gunakan Upload</button>
+        <button class="btn" id="doAll">SIMPAN PDF KE FOLDER</button>
+        <div class="status" id="status"></div>
+      </div>
+
+      <div>
+        <div class="card" style="padding:12px; background: #525659;">
+          <div id="preview" class="preview-frame"></div>
+        </div>
+      </div>
     </div>
-
-    <button class="btn" id="doAll" style="width:100%">Generate & Send</button>
-
-    <div class="status" id="status"></div>
   </div>
-
-  <!-- RIGHT: PREVIEW -->
-  <div class="preview-area">
-    <div id="preview" class="preview-box"></div>
-  </div>
-
 </div>
 
-<!-- LIBS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-// ---------------- SIGNATURE PAD --------------------
-const canvas = document.getElementById("sigCanvas");
-const ctx = canvas.getContext("2d");
-let drawing = false, paths = [];
-let uploadedSig = "", sigDataForLetter = "";
+// ==========================================
+// 1. KONFIGURASI URL SCRIPT
+// ==========================================
+// PASTE URL SCRIPT ANDA DI SINI
+const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwle5PuEm0KrShdgs3fWCSH3tvcH_u88QgBZYcaHnDTrPVlWbQtaujlpU3B7C6T6QWJ/exec"; 
 
-canvas.addEventListener("pointerdown", e => {
-  drawing = true;
-  const r = canvas.getBoundingClientRect();
-  const x = (e.clientX - r.left) * (canvas.width / r.width);
-  const y = (e.clientY - r.top) * (canvas.height / r.height);
-  paths.push([{x,y}]);
-  draw();
-});
-canvas.addEventListener("pointermove", e => {
-  if (!drawing) return;
-  const r = canvas.getBoundingClientRect();
-  const x = (e.clientX - r.left) * (canvas.width / r.width);
-  const y = (e.clientY - r.top) * (canvas.height / r.height);
-  paths[paths.length-1].push({x,y});
-  draw();
-});
-canvas.addEventListener("pointerup", ()=> drawing=false);
-canvas.addEventListener("pointerleave", ()=> drawing=false);
+// ==========================================
+// 2. LOGIKA TANDA TANGAN & PREVIEW (Dipertahankan)
+// ==========================================
+const canvas = document.getElementById('sigCanvas');
+const ctx = canvas.getContext('2d');
+let drawing=false, paths=[], uploadedSig='', isUsingUpload=false;
 
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "#000";
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  for(const p of paths){
-    ctx.beginPath();
-    ctx.moveTo(p[0].x,p[0].y);
-    for(let i=1;i<p.length;i++) ctx.lineTo(p[i].x,p[i].y);
-    ctx.stroke();
-  }
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const x = (e.touches?e.touches[0].clientX:e.clientX) - r.left;
+  const y = (e.touches?e.touches[0].clientY:e.clientY) - r.top;
+  return {x: x*(canvas.width/r.width), y: y*(canvas.height/r.height)};
+}
+const start=e=>{drawing=true;paths.push([getPos(e)]);draw();}
+const move=e=>{if(!drawing)return;e.preventDefault();paths[paths.length-1].push(getPos(e));draw();}
+const end=()=>{drawing=false;refreshPreview();}
+
+canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move); canvas.addEventListener('mouseup',end);
+canvas.addEventListener('touchstart',start); canvas.addEventListener('touchmove',move); canvas.addEventListener('touchend',end);
+
+function draw(){ 
+  ctx.clearRect(0,0,canvas.width,canvas.height); ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.strokeStyle='#000'; 
+  for(const p of paths){ if(!p.length)continue; ctx.beginPath(); ctx.moveTo(p[0].x,p[0].y); for(let i=1;i<p.length;i++) ctx.lineTo(p[i].x,p[i].y); ctx.stroke(); } 
+  if(uploadedSig && isUsingUpload) drawUploaded(uploadedSig);
 }
 
-document.getElementById("clearSig").onclick = ()=>{
-  paths = []; draw(); uploadedSig=""; sigDataForLetter=""; refreshPreview();
-};
-document.getElementById("undoSig").onclick = ()=>{
-  paths.pop(); draw(); refreshPreview();
-};
+document.getElementById('clearSig').onclick=()=>{paths=[];uploadedSig='';isUsingUpload=false;draw();refreshPreview();}
+document.getElementById('undoSig').onclick=()=>{paths.pop();draw();refreshPreview();}
 
-document.getElementById("uploadSig").onchange = e=>{
-  const f = e.target.files[0];
-  if(!f) return;
-  const reader=new FileReader();
-  reader.onload = ev=>{
-    uploadedSig = ev.target.result;
-    const img = new Image();
-    img.onload = ()=>{ draw(); ctx.drawImage(img, 10,10, canvas.width-20, canvas.height-20 );};
-    img.src = uploadedSig;
-  };
-  reader.readAsDataURL(f);
+document.getElementById('uploadSig').onchange=(ev)=>{ 
+    const f=ev.target.files[0]; if(!f)return; 
+    const r=new FileReader(); r.onload=e=>{uploadedSig=e.target.result;isUsingUpload=true;draw();refreshPreview();}; r.readAsDataURL(f);
 };
-document.getElementById("useUpload").onclick=()=>{
-  if(uploadedSig){ sigDataForLetter=uploadedSig; refreshPreview(); }
-  else alert("Belum ada gambar upload.");
-};
+document.getElementById('useUpload').onclick=()=>{if(uploadedSig){isUsingUpload=true;draw();refreshPreview();}};
+function drawUploaded(d){const i=new Image();i.onload=()=>{ctx.drawImage(i,10,10,150,100);};i.src=d;}
 
-function getCanvasDataUrl(){
-  const t=document.createElement("canvas");
-  t.width=canvas.width; t.height=canvas.height;
-  t.getContext("2d").drawImage(canvas,0,0);
-  return t.toDataURL("image/png");
-}
 
-// ---------------- TEMPLATE SURAT --------------------
-const paragraphs = [
-  "Saya menyadari bahwa pemberian/penerimaan gratifikasi merupakan perbuatan korupsi.",
-  "Saya mendukung penuh kebijakan pencegahan gratifikasi dan penguatan integritas DJPb.",
-  "Saya berkomitmen tidak memberikan hadiah, fasilitas, atau bentuk pemberian apapun kepada pejabat/pegawai DJPb.",
-  "Saya bersedia melaporkan jika mengetahui adanya penerimaan gratifikasi.",
-  "Saya akan meneruskan komitmen ini kepada seluruh unit/instansi terkait."
+const templateParagraphs = [
+  'Saya menyadari sepenuhnya bahwa pemberian/penerimaan suap dan gratifikasi merupakan perbuatan korupsi yang menciderai nilai integritas dan melanggar norma hukum.',
+  'Saya memahami dan mendukung penuh kebijakan pencegahan gratifikasi, benturan kepentingan, dan penguatan integritas di lingkungan Kementerian Keuangan, khususnya Direktorat Jenderal Perbendaharaan.',
+  'Saya berkomitmen untuk tidak memberikan uang, hadiah, fasilitas, komisi, imbalan, hiburan, ataupun bentuk pemberian lainnya kepada pejabat/pegawai di lingkungan Direktorat Jenderal Perbendaharaan.',
+  'Saya bersedia melaporkan kepada pimpinan Ditjen Perbendaharaan melalui saluran pelaporan yang tersedia apabila mengetahui adanya pelanggaran.',
+  'Saya akan meneruskan pesan komitmen ini kepada seluruh jajaran di instansi saya.'
 ];
 
-function formatDate(d){
-  return new Date(d).toLocaleDateString("id-ID",{day:"2-digit",month:"long",year:"numeric"});
-}
-
-function escape(s){
-  return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;");
-}
-
-function buildLetter(){
-  const nama = document.getElementById("nama").value;
-  const inst = document.getElementById("instansi").value;
-  const jab = document.getElementById("jabatan").value;
-  const tempat = document.getElementById("tempat").value;
-  const tgl = document.getElementById("tanggal").value;
-
-  const sig = sigDataForLetter || (paths.length>0 ? getCanvasDataUrl() : "");
-
-  return `
-  <div class="letter">
-    <div class="title">SURAT PERNYATAAN</div>
-    <div class="subtitle">Komitmen Anti Gratifikasi</div>
-
-    <p>Yang bertanda tangan di bawah ini:</p>
-    <table style="font-size:14px; width:100%">
-      <tr><td style="width:140px">Nama</td><td>: <b>${escape(nama)}</b></td></tr>
-      <tr><td>Instansi</td><td>: <b>${escape(inst)}</b></td></tr>
-      <tr><td>Jabatan</td><td>: <b>${escape(jab)}</b></td></tr>
-    </table>
-
-    <p>Menyatakan bahwa:</p>
-    <ol style="text-align:justify; padding-left:20px;">
-      ${paragraphs.map(p=>`<li style="margin-bottom:8px">${escape(p)}</li>`).join("")}
-    </ol>
-
-    <p style="margin-top:16px">
-      Demikian surat pernyataan ini dibuat untuk mendukung penguatan integritas.
-    </p>
-
-    <div style="margin-top:32px; text-align:left;">
-      ${escape(tempat)}, ${tgl?formatDate(tgl):""}<br><br>
-      ${sig?`<img src="${sig}" class="signature-img">`:`<div style="border:1px dashed #aaa;width:150px;height:60px;"></div>`}
-      <br><b>${escape(nama)}</b>
-    </div>
-  </div>`;
-}
-
 function refreshPreview(){
-  document.getElementById("preview").innerHTML = buildLetter();
-}
+  const val=id=>(document.getElementById(id).value||'').replace(/[&<>]/g,'');
+  const nama=val('nama'), inst=val('instansi'), jab=val('jabatan'), temp=val('tempat');
+  const tglRaw=document.getElementById('tanggal').value;
+  const tgl = tglRaw ? new Date(tglRaw).toLocaleDateString('id-ID',{dateStyle:'long'}) : '....................';
+  const sig = (paths.length>0 || isUsingUpload) ? canvas.toDataURL() : '';
 
-["nama","instansi","jabatan","tempat","tanggal"].forEach(id=>{
-  document.getElementById(id).addEventListener("input",refreshPreview);
-});
+  const list = templateParagraphs.map(p=>`<li style="margin:6px 0;text-align:justify;">${p}</li>`).join('');
+
+  document.getElementById('preview').innerHTML = `
+    <div class="letter">
+      <div class="title">SURAT PERNYATAAN</div>
+      <div class="subtitle">Komitmen Anti Gratifikasi</div>
+      <p>Yang bertanda tangan di bawah ini:</p>
+      <table style="width:100%;font-size:14px;margin-bottom:10px">
+        <tr><td width="150">Nama</td><td>: <b>${nama}</b></td></tr>
+        <tr><td>Instansi</td><td>: <b>${inst}</b></td></tr>
+        <tr><td>Jabatan</td><td>: <b>${jab}</b></td></tr>
+      </table>
+      <p>Dengan ini menyatakan bahwa:</p>
+      <ol style="font-size:14px;padding-left:20px;">${list}</ol>
+      <p>Demikian surat pernyataan ini dibuat dengan sebenar-benarnya.</p>
+      <table style="width:100%;margin-top:30px">
+        <tr><td width="60%"></td><td align="left">
+          ${temp}, ${tgl}<br>Yang membuat pernyataan,<br><br>
+          ${sig ? `<img src="${sig}" class="signature-img">` : `<div style="height:80px;border:1px dashed #ccc;"></div>`}
+          <br><b>${nama}</b>
+        </td></tr>
+      </table>
+    </div>`;
+}
+['nama','instansi','jabatan','tempat','tanggal'].forEach(i=>document.getElementById(i).oninput=refreshPreview);
 refreshPreview();
 
-// ---------------- CREATE PDF ------------------------
-async function generatePdf(){
-  refreshPreview();
-  const el = document.querySelector("#preview");
-  const canvasCap = await html2canvas(el,{scale:2,background:"#fff"});
-  const imgData = canvasCap.toDataURL("image/png");
-  const pdf = new jspdf.jsPDF({unit:"mm",format:"a4"});
-  const pageW = pdf.internal.pageSize.getWidth();
-  const pageH = pdf.internal.pageSize.getHeight();
-  pdf.addImage(imgData,"PNG",0,0,pageW,pageW*(canvasCap.height/canvasCap.width));
-  return pdf.output("blob");
-}
+// ==========================================
+// 3. PROSES UPLOAD (PERBAIKAN PDF)
+// ==========================================
+function setStatus(msg, type){ const s=document.getElementById('status'); s.innerText=msg; s.className="status "+type; }
 
-function triggerDownload(blob, name){
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url; a.download=name;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+document.getElementById('doAll').onclick = async () => {
+  if(APPSCRIPT_URL.includes("PASTE_URL")) { alert("URL Script Belum Diisi!"); return; }
+  
+  const btn = document.getElementById('doAll');
+  btn.disabled = true;
+  setStatus('Membuat PDF...', 'loading');
 
-// ---------------- UPLOAD ------------------------
-const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwle5PuEm0KrShdgs3fWCSH3tvcH_u88QgBZYcaHnDTrPVlWbQtaujlpU3B7C6T6QWJ/exec";
+  try {
+    // 1. Generate Gambar (Scale 3 untuk kualitas lebih baik)
+    const el = document.querySelector('#preview .letter');
+    const canvasImg = await html2canvas(el, {scale: 3, useCORS:true, scrollY: 0, windowWidth: 800}); // scrollY: 0 penting agar tidak terpotong
+    const imgData = canvasImg.toDataURL('image/jpeg', 0.9);
 
-async function uploadToDrive(blob, filename){
-  const fd=new FormData();
-  fd.append("file",blob);
-  fd.append("filename",filename);
-  fd.append("mimeType","application/pdf");
+    // 2. Generate PDF (Perbaikan Dinamis)
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','mm','a4');
+    
+    // Dimensi A4: 210mm x 297mm. Kita pakai margin 10mm (kiri/kanan/atas/bawah)
+    const pageWidth = pdf.internal.pageSize.getWidth(); // 210
+    
+    // Lebar Gambar di PDF (misal: 190mm untuk margin 10mm)
+    const pdfWidth = pageWidth - 20; 
+    
+    // TINGGI DINAMIS: (Tinggi Asli Canvas / Lebar Asli Canvas) * Lebar PDF
+    const pdfHeight = (canvasImg.height * pdfWidth) / canvasImg.width; 
 
-  const resp = await fetch(APPSCRIPT_URL,{method:"POST",body:fd});
-  const txt = await resp.text();
-  try { return JSON.parse(txt); }
-  catch { return {status:"error",raw:txt}; }
-}
+    // Jika Tinggi melebihi 297, Anda perlu logika multi-page.
+    // Untuk saat ini, kita anggap surat ini 1 halaman A4.
+    
+    pdf.addImage(imgData, 'JPEG', 10, 10, pdfWidth, pdfHeight); // Posisi 10, 10 (margin)
+    
+    const pdfBase64 = pdf.output('datauristring').split(',')[1];
+    const fName = (document.getElementById('nama').value || 'Surat').replace(/\W/g,'_') + ".pdf";
 
-function status(t,e=false){
-  const s=document.getElementById("status");
-  s.textContent=t;
-  s.style.color = e? "red":"black";
-}
+    // 3. Upload
+    setStatus('Mengupload ke Folder Drive...', 'loading');
+    
+    const res = await fetch(APPSCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ filename: fName, fileData: pdfBase64 }),
+      headers: { "Content-Type": "text/plain" }
+    });
+    
+    const result = await res.json();
+    
+    if(result.status === 'success'){
+      setStatus('Berhasil Disimpan!', 'success');
+      if(confirm("Berhasil Upload ke Folder!\nBuka File?")) window.open(result.url, '_blank');
+    } else {
+      // Jika Apps Script mengirim pesan error (misal: ID Folder Salah), akan ditangkap di sini
+      throw new Error(result.message);
+    }
 
-document.getElementById("doAll").onclick = async()=>{
-  status("Membuat PDF...");
-  const nama = document.getElementById("nama").value || "surat";
-  const filename = nama.replace(/\s+/g,"_") + "_surat.pdf";
-
-  const blob = await generatePdf();
-  triggerDownload(blob,filename);
-
-  status("Mengupload ke Google Drive...");
-  const res = await uploadToDrive(blob,filename);
-
-  if(res.status==="success"){
-    status("✔ Berhasil diupload");
-    alert("Berhasil diunggah ke Drive:\n" + res.url);
-  } else {
-    status("❌ Upload gagal",true);
-    alert("Upload gagal:\n" + JSON.stringify(res));
+  } catch(e) {
+    console.error(e);
+    setStatus('Gagal: '+e.message, 'error');
+    alert('Error: '+e.message);
+  } finally {
+    btn.disabled = false;
   }
 };
 </script>
-
 </body>
 </html>
