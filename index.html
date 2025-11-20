@@ -12,7 +12,7 @@ body{font-family:Inter, system-ui, -apple-system, sans-serif; margin:0;backgroun
 .wrap{max-width:1100px;margin:18px auto;padding:18px}
 .card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(12,24,60,0.06)}
 h1 {
-    font-size: 28px;       /* Ukuran Font Besar */
+    font-size: 26px;       /* Ukuran Font Besar */
     font-weight: 900;      /* Sangat Tebal */
     text-align: center;    /* Posisi di Tengah */
     margin: 0 0 10px;      /* Jarak ke bawah */
@@ -186,7 +186,7 @@ async function generatePdfBlobFromPreview(){
   refreshPreview();
   const el = document.querySelector('#preview .letter');
   const canvasCap = await html2canvas(el, { 
-    scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0, windowWidth: 800 
+    scale: 0,8, useCORS: true, backgroundColor: '#ffffff', scrollY: 0, windowWidth: 800 
   }); 
   
   const imgData = canvasCap.toDataURL('image/jpeg', 0.95); 
@@ -287,5 +287,6 @@ document.getElementById('doAll').onclick = async () => {
 </script>
 </body>
 </html>
+
 
 
