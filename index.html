@@ -3,19 +3,20 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Generator Surat Pernyataan — A4 Fix & Folder Upload</title>
+<title>Generator Surat Pernyataan — A4 Fix</title>
 
 <style>
-/* --- GAYA TAMPILAN --- */
+/* GAYA TAMPILAN SAMA SEPERTI SEBELUMNYA */
 :root{--accent:#0b5ed7;--muted:#6b7280}
 body{font-family:Inter, system-ui, -apple-system, sans-serif; margin:0;background:#f3f6fa;color:#0b2545}
 .wrap{max-width:1100px;margin:18px auto;padding:18px}
 .card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(12,24,60,0.06)}
 h1{font-size:18px;margin:0 0 10px}
 label{display:block;font-size:13px;margin-top:10px;color:var(--muted);font-weight:600;}
-input[type=text], input[type=date]{width:100%;padding:10px;border:1px solid #e6eefc;border-radius:8px;font-size:14px;box-sizing:border-box; margin-top: 4px;}
+input[type=text], input[type=date], input[type=file]{width:100%;padding:10px;border:1px solid #e6eefc;border-radius:8px;font-size:14px;box-sizing:border-box; margin-top: 4px;}
 .grid{display:grid;grid-template-columns:1fr 520px;gap:18px}
 .note{font-size:13px;color:var(--muted);margin-top:8px}
+/* Fix Preview Frame untuk A4 */
 .preview-frame{border:1px solid #e6eefc;padding:18px;border-radius:8px;background:#fff;min-height:1120px; display:flex; justify-content:center;}
 
 .letter{font-family: 'Times New Roman', serif;color:#000;padding:28px;width:210mm;box-sizing:border-box; background: white;}
@@ -83,18 +84,17 @@ input[type=text], input[type=date]{width:100%;padding:10px;border:1px solid #e6e
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 // ==========================================
-// 1. KONFIGURASI URL SCRIPT
+// 1. PASTE URL BARU ANDA DI SINI
 // ==========================================
-// PASTE URL DEPLOYMENT (exec) ANDA DI SINI
-const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwle5PuEm0KrShdgs3fWCSH3tvcH_u88QgBZYcaHnDTrPVlWbQtaujlpU3B7C6T6QWJ/exec"; 
+const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQnMvPuxsX6aah6LJxBZxLP6FPPz3SU4spkp3eQvzNHbBEAX0kY2FtuJR5mswswIGTmA/exec"; 
 
 // ==========================================
-// 2. LOGIKA TANDA TANGAN & PREVIEW 
+// 2. LOGIKA CANVAS & PREVIEW
 // ==========================================
 const canvas = document.getElementById('sigCanvas');
 const ctx = canvas.getContext('2d');
@@ -106,9 +106,9 @@ function getPos(e) {
   const y = (e.touches?e.touches[0].clientY:e.clientY) - r.top;
   return {x: x*(canvas.width/r.width), y: y*(canvas.height/r.height)};
 }
-const start=e=>{drawing=true;paths.push([getPos(e)]);draw();}
-const move=e=>{if(!drawing)return;e.preventDefault();paths[paths.length-1].push(getPos(e));draw();}
-const end=()=>{drawing=false;refreshPreview();}
+const start=e=>{drawing=true;paths.push([getPos(e)]);draw()}
+const move=e=>{if(!drawing)return;e.preventDefault();paths[paths.length-1].push(getPos(e));draw()}
+const end=()=>{drawing=false;refreshPreview()}
 
 canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move); canvas.addEventListener('mouseup',end);
 canvas.addEventListener('touchstart',start); canvas.addEventListener('touchmove',move); canvas.addEventListener('touchend',end);
@@ -128,7 +128,6 @@ document.getElementById('uploadSig').onchange=(ev)=>{
 };
 document.getElementById('useUpload').onclick=()=>{if(uploadedSig){isUsingUpload=true;draw();refreshPreview();}};
 function drawUploaded(d){const i=new Image();i.onload=()=>{ctx.drawImage(i,10,10,150,100);};i.src=d;}
-
 
 const templateParagraphs = [
   'Saya menyadari sepenuhnya bahwa pemberian/penerimaan suap dan gratifikasi merupakan perbuatan korupsi yang menciderai nilai integritas dan melanggar norma hukum.',
@@ -173,108 +172,106 @@ function refreshPreview(){
 refreshPreview();
 
 // ==========================================
-// 3. FUNGSI UTAMA: GENERATE PDF A4 (ANTI-POTONG)
+// 3. GENERATE PDF (A4 FIX)
 // ==========================================
-
 async function generatePdfBlobFromPreview(){
   refreshPreview();
   const el = document.querySelector('#preview .letter');
-
-  // html2canvas settings: scale 2 (kualitas) dan scrollY/windowWidth (anti-potong)
   const canvasCap = await html2canvas(el, { 
-    scale: 2, 
-    useCORS: true, 
-    backgroundColor: '#ffffff',
-    scrollY: 0,
-    windowWidth: 800 
+    scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0, windowWidth: 800 
   }); 
   
   const imgData = canvasCap.toDataURL('image/jpeg', 0.95); 
   const { jsPDF } = window.jspdf;
-  
-  // Inisialisasi PDF A4
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
   
   const pdfPageWidth = pdf.internal.pageSize.getWidth(); 
-  const margin = 10; // Margin 10 mm
-  
-  // Lebar gambar di dalam PDF (190 mm)
+  const margin = 10; 
   const pdfWidth = pdfPageWidth - margin * 2; 
-  
-  // TINGGI PROPORSIONAL: Ini memastikan gambar tidak terpotong (scaled to fit)
   const pdfHeight = (canvasCap.height * pdfWidth) / canvasCap.width; 
 
-  // Masukkan gambar ke PDF dengan margin 10mm
   pdf.addImage(imgData, 'JPEG', margin, margin, pdfWidth, pdfHeight); 
-  
-  const blob = pdf.output('blob');
-  return blob;
+  return pdf.output('blob');
 }
 
 // ==========================================
-// 4. FUNGSI UTAMA: UPLOAD BLOB (MENGGUNAKAN FORMDATA)
+// 4. UPLOAD LOGIC (FIXED FOR CORS & JSON)
 // ==========================================
-
-async function uploadBlobToAppsScript(blob, filename){
-  const fd = new FormData();
-  // Kunci 'file' di sini harus sama dengan yang diambil di Code.gs (e.parameter.file)
-  fd.append('file', blob, filename);
-  fd.append('filename', filename); // Opsional, tapi baik untuk kejelasan di sisi server
-  
-  // Mengirim FormData TIDAK perlu headers: {"Content-Type": "text/plain"}
-  // Karena FormData secara otomatis mengatur Content-Type: multipart/form-data
-  const resp = await fetch(APPSCRIPT_URL, {
-    method: 'POST',
-    body: fd 
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
   });
-  
-  // Server Apps Script mengirim balik JSON, kita parse
-  try {
-    return resp.json();
-  } catch(e) {
-    return { status: 'error', message: 'Gagal parse JSON dari server. Respon non-JSON.' };
-  }
 }
 
-// ==========================================
-// 5. HANDLER TOMBOL UTAMA
-// ==========================================
-function setStatus(msg, type){ const s=document.getElementById('status'); s.innerText=msg; s.className="status "+type; }
+function setStatus(msg, type){ 
+    const s=document.getElementById('status'); 
+    s.innerText=msg; s.className="status "+type; 
+}
 
 document.getElementById('doAll').onclick = async () => {
-  if(APPSCRIPT_URL.includes("PASTE_URL")) { alert("URL Script Belum Diisi!"); return; }
+  if(APPSCRIPT_URL.includes("PASTE_URL")) { alert("URL Script belum diisi!"); return; }
   
   const btn = document.getElementById('doAll');
   btn.disabled = true;
-  setStatus('Membuat PDF A4...', 'loading');
+  setStatus('Membuat PDF...', 'loading');
 
   try {
-    const namaVal = (document.getElementById('nama').value || 'surat').trim().replace(/\s+/g,'_');
+    const namaVal = (document.getElementById('nama').value || 'Surat').trim().replace(/\s+/g,'_');
     const filename = `${namaVal}_surat_pernyataan.pdf`;
 
-    // 1. Generate PDF Blob
+    // 1. Generate
     const blob = await generatePdfBlobFromPreview();
-
-    // 2. Upload ke Apps Script
-    setStatus('Mengupload ke Folder Drive...', 'loading');
     
-    const res = await uploadBlobToAppsScript(blob, filename);
+    // 2. Convert to Base64
+    const base64Data = await blobToBase64(blob);
 
-    if(res && res.status === 'success'){
-      setStatus('Berhasil Disimpan di Drive!', 'success');
-      if(confirm("Upload Berhasil!\nKlik OK untuk membuka file di Drive.")) {
-         window.open(res.url, '_blank');
-      }
+    setStatus('Mengupload ke Drive...', 'loading');
+
+    // 3. Prepare Payload
+    const payload = {
+      fileData: base64Data,
+      filename: filename,
+      mimeType: 'application/pdf'
+    };
+
+    // 4. SEND (Raw Text/Plain Body to avoid CORS Preflight)
+    const resp = await fetch(APPSCRIPT_URL, {
+      method: 'POST',
+      // Jangan pakai JSON.stringify langsung di body tanpa trik ini jika server sensitif
+      // Kita kirim sebagai text biasa, server akan parse sendiri.
+      body: JSON.stringify(payload)
+    });
+
+    const res = await resp.json();
+
+  if(res.status === 'success'){
+      // ==========================================
+      // SUKSES! Upload Berhasil. Sekarang Download.
+      // ==========================================
+      setStatus('Upload Berhasil! Mendownload file...', 'success');
+      
+      // A. Buka Tab Baru ke Google Drive (Opsional)
+      window.open(res.url, '_blank');
+
+      // B. DOWNLOAD OTOMATIS KE LAPTOP/HP
+      // Membuat link download palsu lalu diklik otomatis
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(blob); // Gunakan blob yang sudah kita generate di langkah 1
+      downloadLink.download = filename;              // Gunakan nama file yang sama
+      document.body.appendChild(downloadLink);
+      downloadLink.click();                          // Klik otomatis
+      document.body.removeChild(downloadLink);       // Bersihkan
+
     } else {
-      console.error('Upload response:', res);
-      // Jika Apps Script mengirim pesan error (misal: ID Folder Salah)
-      throw new Error(res.message || "Gagal upload. Cek Apps Script logs.");
+      throw new Error(res.message);
     }
 
   } catch(e) {
     console.error(e);
     setStatus('Gagal: '+e.message, 'error');
-    alert('Error: '+e.message + ' (Cek Apps Script dan ID Folder)');
   } finally {
     btn.disabled = false;
   }
@@ -282,4 +279,3 @@ document.getElementById('doAll').onclick = async () => {
 </script>
 </body>
 </html>
-
