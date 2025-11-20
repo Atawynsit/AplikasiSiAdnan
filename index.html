@@ -186,10 +186,10 @@ async function generatePdfBlobFromPreview(){
   refreshPreview();
   const el = document.querySelector('#preview .letter');
   const canvasCap = await html2canvas(el, { 
-    scale: 0,8, useCORS: true, backgroundColor: '#ffffff', scrollY: 0, windowWidth: 800 
+    scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0, windowWidth: 800 
   }); 
   
-  const imgData = canvasCap.toDataURL('image/jpeg', 0.95); 
+  const imgData = canvasCap.toDataURL('image/jpeg', 0.6); 
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
   
@@ -287,6 +287,7 @@ document.getElementById('doAll').onclick = async () => {
 </script>
 </body>
 </html>
+
 
 
 
